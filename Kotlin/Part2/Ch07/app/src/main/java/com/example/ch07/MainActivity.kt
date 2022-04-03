@@ -10,6 +10,14 @@ import android.widget.Button
 
 class MainActivity : AppCompatActivity() {
 
+    private val soundVisualizerView : SoundVisualizerView by lazy {
+        findViewById(R.id.soundVisualizerView)
+    }
+
+    private val recordTimeTextView : CountUpView by lazy {
+        findViewById(R.id.recordTimeTextView)
+    }
+
     private val resetButton : Button by lazy {
         findViewById(R.id.resetButton)
     }
@@ -67,11 +75,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         resetButton.setOnClickListener {
-            state = State.BEFORE_RECORDING
             stopPlaying()
+            soundVisualizerView.clearVisualization()
+            recordTimeTextView.clearCountTime()
+            state = State.BEFORE_RECORDING
         }
 
-
+        soundVisualizerView.onRequestCurrentAmplitude = {
+            recorder?.maxAmplitude ?: 0
+        } //soundVisualizerView 의 onRequestCurrentAmplitude 함수를 정의 >> recorder의 maxAmplitude 값 반환
     }
 
     private fun initVariables() {
@@ -108,6 +120,8 @@ class MainActivity : AppCompatActivity() {
             prepare()
         }
         recorder?.start()
+        soundVisualizerView.startVisualizing(false)
+        recordTimeTextView.startCounUp()
         state = State.ON_RECORDING
     }
 
@@ -117,6 +131,8 @@ class MainActivity : AppCompatActivity() {
             release()
         }
         recorder = null
+        soundVisualizerView.stopVisualizing()
+        recordTimeTextView.stopCountUp()
         state = State.AFTER_RECORDING
     }
 
@@ -125,13 +141,21 @@ class MainActivity : AppCompatActivity() {
             setDataSource(recordingFilePath)
             prepare()
         }
+        player?.setOnCompletionListener {
+            stopPlaying()
+            state = State.AFTER_RECORDING
+        }
         player?.start()
+        soundVisualizerView.startVisualizing(true)
+        recordTimeTextView.startCounUp()
         state = State.ON_PLAYING
     }
 
     private fun stopPlaying() {
         player?.release()
         player = null
+        soundVisualizerView.stopVisualizing()
+        recordTimeTextView.stopCountUp()
         state = State.AFTER_RECORDING
     }
 
