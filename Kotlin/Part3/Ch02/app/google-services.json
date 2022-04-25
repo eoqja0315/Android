@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "682347577002",
+    "project_id": "aop-part3-chapter02-3b90c",
+    "storage_bucket": "aop-part3-chapter02-3b90c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682347577002:android:b980e389e2b34133675ad3",
+        "android_client_info": {
+          "package_name": "com.dbhong.cp03.ch02"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "682347577002-3o1ddanl2jno2peavsfdehft1080975c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDk-e_txyfYMRnVPzym839pH4s8ein8o5k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "682347577002-3o1ddanl2jno2peavsfdehft1080975c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

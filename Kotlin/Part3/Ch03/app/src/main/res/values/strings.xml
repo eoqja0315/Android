@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Ch03</string>
+    <string name="change_time_text">시간 재설정</string>
+    <string name="alarm_on_text">알람 켜기</string>
+</resources>
