@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "803580630050",
+    "firebase_url": "https://aop-part3-chapter05-1e08b-default-rtdb.firebaseio.com",
+    "project_id": "aop-part3-chapter05-1e08b",
+    "storage_bucket": "aop-part3-chapter05-1e08b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803580630050:android:4cff3bc20dff9ba277667b",
+        "android_client_info": {
+          "package_name": "com.dbhong.cp03.ch05"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "803580630050-38hkum8pbpue532f84c280vvlbk6mpof.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcVniMWU-Kajl2PuEUxdifvuBN_1KsWXA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "803580630050-38hkum8pbpue532f84c280vvlbk6mpof.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

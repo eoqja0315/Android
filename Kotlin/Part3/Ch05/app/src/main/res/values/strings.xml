@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Ch05</string>
+
+    <string name="facebook_app_id">510927297499582</string>
+    <string name="fb_login_protocol_scheme">5b26c70c4058fcb1aaf89171148283bc</string>
+    <string name="facebook_client_token">56789</string>
+
+</resources>
