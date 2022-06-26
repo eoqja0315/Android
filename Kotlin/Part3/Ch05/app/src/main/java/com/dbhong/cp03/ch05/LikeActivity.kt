@@ -34,11 +34,11 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_like)
 
-        userDB = Firebase.database.reference.child("Users")
+        userDB = Firebase.database.reference.child(DBkey.USERS)
         val currentUserDB = userDB.child(getCurrentUserId())
         currentUserDB.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.child("name").value == null) {
+                if (snapshot.child(DBkey.NAME).value == null) {
                     showNameInputPopup()
                     return
                 }
@@ -85,13 +85,13 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         userDB.addChildEventListener(object : ChildEventListener{
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 if (snapshot.child("userId").value != getCurrentUserId()
-                    && snapshot.child("likeBy").child("like").hasChild(getCurrentUserId()).not()
-                    && snapshot.child("likeBy").child("dislike").hasChild(getCurrentUserId()).not()) {
+                    && snapshot.child(DBkey.LIKE_BY).child(DBkey.LIKE).hasChild(getCurrentUserId()).not()
+                    && snapshot.child(DBkey.LIKE_BY).child(DBkey.DISLIKE).hasChild(getCurrentUserId()).not()) {
 
                     val userId = snapshot.child("userId").value.toString()
                     var name = "undecided"
-                    if (snapshot.child("name") != null) {
-                        name = snapshot.child("name").value.toString()
+                    if (snapshot.child(DBkey.NAME) != null) {
+                        name = snapshot.child(DBkey.NAME).value.toString()
                     }
 
                     cardItems.add(CardItem(userId, name))
@@ -103,7 +103,7 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
                 //이름이 변경된 유저를 찾음
                 cardItems.find { it.userId == snapshot.key }?.let {
-                    it.name = snapshot.child("name").value.toString()
+                    it.name = snapshot.child(DBkey.NAME).value.toString()
                 }
 
                 adapter.submitList(cardItems)
@@ -148,7 +148,7 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         val currentUserDB = userDB.child(userId)
         val user = mutableMapOf<String, Any>()
         user["userId"] = userId
-        user["name"] = name
+        user[DBkey.NAME] = name
         currentUserDB.updateChildren(user)
 
         getUnSelectedUsers()
@@ -159,8 +159,8 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         cardItems.removeFirst() // 첫 Card를 CardAdapter 에서 삭제
 
         userDB.child(card.userId)
-            .child("likeBy")
-            .child("like")
+            .child(DBkey.LIKE_BY)
+            .child(DBkey.LIKE)
             .child(getCurrentUserId())
             .setValue(true)
 
@@ -174,8 +174,8 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
         cardItems.removeFirst() // 첫 Card를 CardAdapter 에서 삭제
 
         userDB.child(card.userId)
-            .child("likeBy")
-            .child("dislike")
+            .child(DBkey.LIKE_BY)
+            .child(DBkey.DISLIKE)
             .child(getCurrentUserId())
             .setValue(true)
 
@@ -183,19 +183,19 @@ class LikeActivity : AppCompatActivity(), CardStackListener {
     }
 
     private fun saveMatchIfOtherUserLikedMe(otherUserId : String) {
-        val otherUserDB = userDB.child(getCurrentUserId()).child("likeBy").child("like").child(otherUserId)
+        val otherUserDB = userDB.child(getCurrentUserId()).child(DBkey.LIKE_BY).child(DBkey.LIKE).child(otherUserId)
 
         otherUserDB.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if(snapshot.value == true) {
                     userDB.child(getCurrentUserId())
-                        .child("likeBy")
+                        .child(DBkey.LIKE_BY)
                         .child("match")
                         .child(otherUserId)
                         .setValue(true)
 
                     userDB.child(getCurrentUserId())
-                        .child("likeBy")
+                        .child(DBkey.LIKE_BY)
                         .child("match")
                         .child(getCurrentUserId())
                         .setValue(true)

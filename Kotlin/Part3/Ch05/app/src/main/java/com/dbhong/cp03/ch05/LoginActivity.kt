@@ -146,7 +146,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         val userId = auth.currentUser?.uid.orEmpty()
-        val currentUserDB = Firebase.database.reference.child("Users").child(userId)
+        val currentUserDB = Firebase.database.reference.child(DBkey.USERS).child(userId)
         val user = mutableMapOf<String, Any>()
         user["userId"] = userId
         currentUserDB.updateChildren(user)

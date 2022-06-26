@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.dbhong.cp03.ch05.DBkey.Companion.LIKE_BY
+import com.dbhong.cp03.ch05.DBkey.Companion.USERS
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
@@ -21,7 +23,7 @@ class MatchedUserActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_match)
 
-        userDB = Firebase.database.reference.child("Users")
+        userDB = Firebase.database.reference.child(USERS)
         initMatchedUserRecyclerView()
         getMatchUsers()
     }
@@ -33,7 +35,7 @@ class MatchedUserActivity : AppCompatActivity() {
     }
 
     private fun getMatchUsers() {
-        val matchedDB = userDB.child(getCurrentUserId()).child("likeBy").child("match")
+        val matchedDB = userDB.child(getCurrentUserId()).child(LIKE_BY).child(DBkey.MATCH)
 
         matchedDB.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
@@ -56,7 +58,7 @@ class MatchedUserActivity : AppCompatActivity() {
     private fun getUserByKey(userId : String) {
         userDB.child(userId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                cardItems.add(CardItem(userId, snapshot.child("name").value.toString()))
+                cardItems.add(CardItem(userId, snapshot.child(DBkey.NAME).value.toString()))
                 adapter.submitList(cardItems)
                 adapter.notifyDataSetChanged()
             }
