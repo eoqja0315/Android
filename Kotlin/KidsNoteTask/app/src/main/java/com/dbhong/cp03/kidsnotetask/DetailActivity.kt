@@ -9,29 +9,24 @@ import com.dbhong.cp03.kidsnotetask.model.Picture
 
 class DetailActivity : AppCompatActivity() {
 
-    private lateinit var db : AppDatabase
-    private lateinit var binding : ActivityDetailBinding
-    private lateinit var picture : Picture
+    private lateinit var db: AppDatabase
+    private lateinit var binding: ActivityDetailBinding
+    private lateinit var picture: Picture
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        db = getAppDatabase(this)
         val pictureModel = intent.getParcelableExtra<Picture>("pictureModel")
 
-        if(pictureModel != null) {
+        if (pictureModel != null) {
             picture = pictureModel
-        }
-
-        db = getAppDatabase(this)
-
-        if(picture == null) {
-            Toast.makeText(this, "Failed to get picture data", Toast.LENGTH_SHORT).show()
-            finish()
-        } else {
             initViews()
             bindingViews()
+        } else {
+            Toast.makeText(this, "Failed to get picture data", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 
@@ -43,58 +38,43 @@ class DetailActivity : AppCompatActivity() {
             .load(picture.downloadUrl)
             .into(binding.imageView)
 
-        if(picture.like) {
+        if (picture.like) {
             binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
         }
     }
 
     private fun bindingViews() {
         binding.imageButtonLike.setOnClickListener {
-            if(picture.like.not()) {
-                like()
-            }
-            else {
-                dislike()
+            if (picture.like.not()) {
+                like {
+                    runOnUiThread {
+                        binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
+                    }
+                }
+            } else {
+                dislike {
+                    runOnUiThread {
+                        binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_outlined_flag_24))
+                    }
+                }
             }
         }
     }
 
-    private fun like() {
+    private fun like(listener: () -> (Unit)) {
         Thread {
-            db.pictureDao().savePictureById(
-                Picture(
-                    id = picture.id,
-                    author = picture.author,
-                    width = picture.width,
-                    height = picture.height,
-                    url = picture.url,
-                    downloadUrl = picture.downloadUrl,
-                    true
-                )
-            )
+            picture.like = true
+            db.pictureDao().savePictureById(picture)
+            listener()
         }.start()
-
-        picture.like = true
-        binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
     }
 
-    private fun dislike() {
+    private fun dislike(listener: () -> (Unit)) {
         Thread {
-            db.pictureDao().savePictureById(
-                Picture(
-                    id = picture.id,
-                    author = picture.author,
-                    width = picture.width,
-                    height = picture.height,
-                    url = picture.url,
-                    downloadUrl = picture.downloadUrl,
-                    false
-                )
-            )
+            picture.like = false
+            db.pictureDao().savePictureById(picture)
         }.start()
-
-        picture.like = false
-        binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_outlined_flag_24))
+        listener()
     }
 
     companion object {

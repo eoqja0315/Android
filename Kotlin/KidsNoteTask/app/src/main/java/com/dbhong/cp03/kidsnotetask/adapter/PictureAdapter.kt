@@ -14,9 +14,7 @@ import com.dbhong.cp03.kidsnotetask.getAppDatabase
 import com.dbhong.cp03.kidsnotetask.model.Picture
 
 class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
-    ListAdapter<Picture, PictureAdapter.PictureAdapterViewHolder>(
-        diffUtil
-    ) {
+    ListAdapter<Picture, PictureAdapter.PictureAdapterViewHolder>(diffUtil) {
 
     inner class PictureAdapterViewHolder(private val binding: ItemPictureBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -24,38 +22,37 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
             binding.textViewAuthor.text = pictureModel.author
             binding.textViewImageSize.text = "${pictureModel.width} x ${pictureModel.height}"
 
-            binding.root.setOnClickListener {
-                itemClickListener(pictureModel)
-            }
-
             Glide.with(binding.imageView.context)
                 .load(pictureModel.downloadUrl)
                 .into(binding.imageView)
 
-            if (pictureModel.like) {
-                binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_flag_24))
+            getLikeDataFromDB(getAppDatabase(binding.root.context), pictureModel.id){
+                if(it) {
+                    binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_flag_24))
+                }
+            }
+
+            binding.root.setOnClickListener {
+                itemClickListener(pictureModel)
             }
 
             binding.imageButtonLike.setOnClickListener {
                 if(pictureModel.like.not()) {
-                    like(getAppDatabase(binding.root.context), pictureModel)
-                    binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_flag_24))
+                    like(getAppDatabase(binding.root.context), pictureModel){
+                        binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_flag_24))
+                    }
                 } else {
-                    dislike(getAppDatabase(binding.root.context), pictureModel)
-                    binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_outlined_flag_24))
+                    dislike(getAppDatabase(binding.root.context), pictureModel){
+                        binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_outlined_flag_24))
+                    }
                 }
-
             }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PictureAdapterViewHolder {
         return PictureAdapterViewHolder(
-            ItemPictureBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
-            )
+            ItemPictureBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         )
     }
 
@@ -64,37 +61,28 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
     }
 
 
-    private fun like(db : AppDatabase, picture : Picture) {
+    private fun like(db : AppDatabase, picture : Picture, listener : () -> (Unit)) {
         Thread {
-            db.pictureDao().savePictureById(
-                Picture(
-                    id = picture.id,
-                    author = picture.author,
-                    width = picture.width,
-                    height = picture.height,
-                    url = picture.url,
-                    downloadUrl = picture.downloadUrl,
-                    true
-                )
-            )
             picture.like = true
+            db.pictureDao().savePictureById(
+                picture
+            )
+            listener()
         }.start()
     }
 
-    private fun dislike(db : AppDatabase, picture : Picture) {
+    private fun dislike(db : AppDatabase, picture : Picture, listener: () -> Unit) {
         Thread {
-            db.pictureDao().savePictureById(
-                Picture(
-                    id = picture.id,
-                    author = picture.author,
-                    width = picture.width,
-                    height = picture.height,
-                    url = picture.url,
-                    downloadUrl = picture.downloadUrl,
-                    false
-                )
-            )
             picture.like = false
+            db.pictureDao().savePictureById(picture)
+            listener()
+        }.start()
+    }
+
+    private fun getLikeDataFromDB(db : AppDatabase, id: Int, listener: (Boolean) -> Unit) {
+        Thread {
+            val picture = db.pictureDao().getOnePictureById(id)
+            listener(picture.like)
         }.start()
     }
 

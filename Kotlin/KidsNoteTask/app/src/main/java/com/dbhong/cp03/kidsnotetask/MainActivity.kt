@@ -4,6 +4,8 @@ import android.animation.ValueAnimator
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dbhong.cp03.kidsnotetask.adapter.PictureAdapter
@@ -25,6 +27,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var db : AppDatabase
 
+    private lateinit var pictures : MutableList<Picture>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -35,10 +39,6 @@ class MainActivity : AppCompatActivity() {
         initPicsumService()
         getPicturesFromApi()
         initPictureRecyclerView()
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 
     private fun initPicsumService() {
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
                     response: Response<JsonArray>
                 ) {
                     val result = response.body()
-                    val pictures = ArrayList<Picture>()
+                    pictures = mutableListOf()
 
                     if (result != null) {
                         for (pictureResult in result) {
@@ -88,11 +88,13 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    getLikeDataFromDB(pictures) {
-                        runOnUiThread {
-                            pictureAdapter.submitList(pictures)
-                        }
-                    }
+                    pictureAdapter.submitList(pictures)
+
+//                    getLikeDataFromDB() {
+//                        runOnUiThread {
+//                            pictureAdapter.submitList(pictures)
+//                        }
+//                    }
                 }
 
                 override fun onFailure(call: Call<JsonArray>, t: Throwable) {
@@ -102,14 +104,14 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    private fun getLikeDataFromDB(pictures : ArrayList<Picture>, updateListener: (ArrayList<Picture>) -> (Unit)) {
-        Thread {
-            for(i in pictures.indices) {
-                pictures[i].like = db.pictureDao().getPictureLikeById(pictures[i].id)
-            }
-            updateListener(pictures)
-        }.start()
-    }
+//    private fun getLikeDataFromDB(updateListener: (MutableList<Picture>) -> (Unit)) {
+//        Thread {
+//            for(i in pictures.indices) {
+//                pictures[i].like = db.pictureDao().getOnePictureById(pictures[i].id).like
+//            }
+//            updateListener(pictures)
+//        }.start()
+//    }
 
     companion object {
         const val TAG = "MainActivity"

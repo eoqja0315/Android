@@ -11,9 +11,6 @@ interface PictureDao {
     @Query("SELECT * FROM picture WHERE id == :id")
     fun getOnePictureById(id : Int) : Picture
 
-    @Query("SELECT 'like' FROM picture WHERE id == :id")
-    fun getPictureLikeById(id : Int) : Boolean
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun savePictureById(picture : Picture)
 }
