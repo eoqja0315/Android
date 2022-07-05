@@ -12,6 +12,10 @@ import com.dbhong.cp03.kidsnotetask.R
 import com.dbhong.cp03.kidsnotetask.databinding.ItemPictureBinding
 import com.dbhong.cp03.kidsnotetask.getAppDatabase
 import com.dbhong.cp03.kidsnotetask.model.Picture
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
     ListAdapter<Picture, PictureAdapter.PictureAdapterViewHolder>(diffUtil) {
@@ -62,28 +66,36 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
 
 
     private fun like(db : AppDatabase, picture : Picture, listener : () -> (Unit)) {
-        Thread {
+        GlobalScope.launch {
             picture.like = true
             db.pictureDao().savePictureById(
                 picture
             )
-            listener()
-        }.start()
+            GlobalScope.launch(Dispatchers.Main) {
+                listener()
+            }
+        }
     }
 
     private fun dislike(db : AppDatabase, picture : Picture, listener: () -> Unit) {
-        Thread {
+        GlobalScope.launch {
             picture.like = false
             db.pictureDao().savePictureById(picture)
-            listener()
-        }.start()
+            GlobalScope.launch(Dispatchers.Main) {
+                listener()
+            }
+        }
     }
 
     private fun getLikeDataFromDB(db : AppDatabase, id: Int, listener: (Boolean) -> Unit) {
-        Thread {
+        GlobalScope.launch {
             val picture = db.pictureDao().getOnePictureById(id)
-            listener(picture.like)
-        }.start()
+            GlobalScope.launch(Dispatchers.Main) {
+                if(picture != null) {
+                    listener(picture.like)
+                }
+            }
+        }
     }
 
     companion object {

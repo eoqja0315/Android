@@ -6,6 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.dbhong.cp03.kidsnotetask.databinding.ActivityDetailBinding
 import com.dbhong.cp03.kidsnotetask.model.Picture
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class DetailActivity : AppCompatActivity() {
 
@@ -47,35 +50,53 @@ class DetailActivity : AppCompatActivity() {
         binding.imageButtonLike.setOnClickListener {
             if (picture.like.not()) {
                 like {
-                    runOnUiThread {
-                        binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
-                    }
+                    binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
                 }
             } else {
                 dislike {
-                    runOnUiThread {
-                        binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_outlined_flag_24))
-                    }
+                    binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_outlined_flag_24))
                 }
             }
         }
     }
 
-    private fun like(listener: () -> (Unit)) {
-        Thread {
+    private fun like(listener : () -> (Unit)) {
+        GlobalScope.launch {
             picture.like = true
-            db.pictureDao().savePictureById(picture)
-            listener()
-        }.start()
+            db.pictureDao().savePictureById(
+                picture
+            )
+            GlobalScope.launch(Dispatchers.Main) {
+                listener()
+            }
+        }
     }
 
-    private fun dislike(listener: () -> (Unit)) {
-        Thread {
+    private fun dislike(listener: () -> Unit) {
+        GlobalScope.launch {
             picture.like = false
             db.pictureDao().savePictureById(picture)
-        }.start()
-        listener()
+            GlobalScope.launch(Dispatchers.Main) {
+                listener()
+            }
+        }
     }
+
+//    private fun like(listener: () -> (Unit)) {
+//        Thread {
+//            picture.like = true
+//            db.pictureDao().savePictureById(picture)
+//            listener()
+//        }.start()
+//    }
+//
+//    private fun dislike(listener: () -> (Unit)) {
+//        Thread {
+//            picture.like = false
+//            db.pictureDao().savePictureById(picture)
+//        }.start()
+//        listener()
+//    }
 
     companion object {
         const val TAG = "DetailActivity"

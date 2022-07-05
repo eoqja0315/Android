@@ -17,7 +17,7 @@ fun getAppDatabase(context : Context) : AppDatabase {
     return Room.databaseBuilder(
         context,
         AppDatabase::class.java,
-        "KidsNoteTastDB"
+        "KidsNoteTaskDB"
     )
         .build()
 }
