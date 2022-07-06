@@ -1,6 +1,7 @@
 package com.dbhong.cp03.kidsnotetask
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
@@ -21,7 +22,7 @@ class DetailActivity : AppCompatActivity() {
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         db = getAppDatabase(this)
-        val pictureModel = intent.getParcelableExtra<Picture>("pictureModel")
+        val pictureModel = intent.getParcelableExtra<Picture>(PICTURE_MODEL_INTENT_NAME)
 
         if (pictureModel != null) {
             picture = pictureModel
@@ -41,64 +42,53 @@ class DetailActivity : AppCompatActivity() {
             .load(picture.downloadUrl)
             .into(binding.imageView)
 
-        if (picture.like) {
-            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
-        }
+        setImageButtonResource(picture.like)
     }
 
     private fun bindingViews() {
         binding.imageButtonLike.setOnClickListener {
-            if (picture.like.not()) {
-                like {
-                    binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
-                }
+            if (!picture.like) {
+                like()
             } else {
-                dislike {
-                    binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_outlined_flag_24))
-                }
+                dislike()
             }
         }
     }
 
-    private fun like(listener : () -> (Unit)) {
-        GlobalScope.launch {
-            picture.like = true
-            db.pictureDao().savePictureById(
-                picture
-            )
+    private fun like() {
+        setLikeDataToDB(true){
             GlobalScope.launch(Dispatchers.Main) {
-                listener()
+                setImageButtonResource(it)
             }
         }
     }
 
-    private fun dislike(listener: () -> Unit) {
+    private fun dislike() {
+        setLikeDataToDB(false){
+            GlobalScope.launch(Dispatchers.Main) {
+                setImageButtonResource(it)
+            }
+        }
+    }
+
+    private fun setLikeDataToDB(like : Boolean, listener : (Boolean) -> (Unit)) {
         GlobalScope.launch {
-            picture.like = false
+            picture.like = like
             db.pictureDao().savePictureById(picture)
-            GlobalScope.launch(Dispatchers.Main) {
-                listener()
-            }
+            listener(picture.like)
         }
     }
 
-//    private fun like(listener: () -> (Unit)) {
-//        Thread {
-//            picture.like = true
-//            db.pictureDao().savePictureById(picture)
-//            listener()
-//        }.start()
-//    }
-//
-//    private fun dislike(listener: () -> (Unit)) {
-//        Thread {
-//            picture.like = false
-//            db.pictureDao().savePictureById(picture)
-//        }.start()
-//        listener()
-//    }
+    private fun setImageButtonResource(like : Boolean) {
+        if(like) {
+            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
+        } else {
+            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_outlined_flag_24))
+        }
+    }
 
     companion object {
+        const val PICTURE_MODEL_INTENT_NAME = "pictureModel"
         const val TAG = "DetailActivity"
     }
 }

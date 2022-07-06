@@ -1,5 +1,6 @@
 package com.dbhong.cp03.kidsnotetask.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat.getDrawable
@@ -18,11 +19,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
+
     ListAdapter<Picture, PictureAdapter.PictureAdapterViewHolder>(diffUtil) {
 
     inner class PictureAdapterViewHolder(private val binding: ItemPictureBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
         fun bind(pictureModel: Picture) {
+            Log.e(TAG, "++ bind ++")
+
             binding.textViewAuthor.text = pictureModel.author
             binding.textViewImageSize.text = "${pictureModel.width} x ${pictureModel.height}"
 
@@ -30,9 +35,9 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
                 .load(pictureModel.downloadUrl)
                 .into(binding.imageView)
 
-            getLikeDataFromDB(getAppDatabase(binding.root.context), pictureModel.id){
-                if(it) {
-                    binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_flag_24))
+            getLikeDataFromDB(getAppDatabase(binding.root.context), pictureModel){
+                GlobalScope.launch(Dispatchers.Main) {
+                    setImageButtonResource(it)
                 }
             }
 
@@ -42,14 +47,43 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
 
             binding.imageButtonLike.setOnClickListener {
                 if(pictureModel.like.not()) {
-                    like(getAppDatabase(binding.root.context), pictureModel){
-                        binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_flag_24))
-                    }
+                    like(getAppDatabase(binding.root.context), pictureModel)
                 } else {
-                    dislike(getAppDatabase(binding.root.context), pictureModel){
-                        binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_outlined_flag_24))
-                    }
+                    dislike(getAppDatabase(binding.root.context), pictureModel)
                 }
+            }
+        }
+
+        private fun like(db : AppDatabase, picture : Picture) {
+            setLikeDataToDB(db, picture, true)
+        }
+
+        private fun dislike(db : AppDatabase, picture : Picture) {
+            setLikeDataToDB(db, picture, false)
+        }
+
+        private fun setLikeDataToDB(db : AppDatabase, picture: Picture, like : Boolean) {
+            GlobalScope.launch {
+                picture.like = like
+                db.pictureDao().savePictureById(picture)
+                GlobalScope.launch(Dispatchers.Main) {
+                    setImageButtonResource(like)
+                }
+            }
+        }
+
+        private fun getLikeDataFromDB(db : AppDatabase, picture: Picture, listener : (Boolean) -> (Unit)) {
+            GlobalScope.launch {
+                picture.like = db.pictureDao().getOnePictureById(picture.id)?.like ?: return@launch
+                listener(picture.like)
+            }
+        }
+
+        private fun setImageButtonResource(like : Boolean) {
+            if(like) {
+                binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_flag_24))
+            } else {
+                binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_outlined_flag_24))
             }
         }
     }
@@ -64,41 +98,8 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
         holder.bind(currentList[position])
     }
 
-
-    private fun like(db : AppDatabase, picture : Picture, listener : () -> (Unit)) {
-        GlobalScope.launch {
-            picture.like = true
-            db.pictureDao().savePictureById(
-                picture
-            )
-            GlobalScope.launch(Dispatchers.Main) {
-                listener()
-            }
-        }
-    }
-
-    private fun dislike(db : AppDatabase, picture : Picture, listener: () -> Unit) {
-        GlobalScope.launch {
-            picture.like = false
-            db.pictureDao().savePictureById(picture)
-            GlobalScope.launch(Dispatchers.Main) {
-                listener()
-            }
-        }
-    }
-
-    private fun getLikeDataFromDB(db : AppDatabase, id: Int, listener: (Boolean) -> Unit) {
-        GlobalScope.launch {
-            val picture = db.pictureDao().getOnePictureById(id)
-            GlobalScope.launch(Dispatchers.Main) {
-                if(picture != null) {
-                    listener(picture.like)
-                }
-            }
-        }
-    }
-
     companion object {
+        const val TAG = "PictureAdapter"
         val diffUtil = object : DiffUtil.ItemCallback<Picture>() {
             override fun areItemsTheSame(oldItem: Picture, newItem: Picture): Boolean {
                 return oldItem == newItem

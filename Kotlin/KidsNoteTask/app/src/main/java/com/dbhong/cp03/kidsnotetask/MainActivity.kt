@@ -41,9 +41,14 @@ class MainActivity : AppCompatActivity() {
         initPictureRecyclerView()
     }
 
+    override fun onResume() {
+        super.onResume()
+        pictureAdapter.notifyDataSetChanged()
+    }
+
     private fun initPicsumService() {
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://picsum.photos")
+            .baseUrl(GET_PICTURE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -53,7 +58,7 @@ class MainActivity : AppCompatActivity() {
     private fun initPictureRecyclerView() {
         pictureAdapter = PictureAdapter (itemClickListener = {
             val intent = Intent(this, DetailActivity::class.java)
-            intent.putExtra("pictureModel", it)
+            intent.putExtra(PICTURE_MODEL_INTENT_NAME, it)
             startActivity(intent)
         })
 
@@ -87,14 +92,7 @@ class MainActivity : AppCompatActivity() {
                             pictures.add(picture)
                         }
                     }
-
                     pictureAdapter.submitList(pictures)
-
-//                    getLikeDataFromDB() {
-//                        runOnUiThread {
-//                            pictureAdapter.submitList(pictures)
-//                        }
-//                    }
                 }
 
                 override fun onFailure(call: Call<JsonArray>, t: Throwable) {
@@ -104,16 +102,9 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-//    private fun getLikeDataFromDB(updateListener: (MutableList<Picture>) -> (Unit)) {
-//        Thread {
-//            for(i in pictures.indices) {
-//                pictures[i].like = db.pictureDao().getOnePictureById(pictures[i].id).like
-//            }
-//            updateListener(pictures)
-//        }.start()
-//    }
-
     companion object {
         const val TAG = "MainActivity"
+        const val GET_PICTURE_URL = "https://picsum.photos"
+        const val PICTURE_MODEL_INTENT_NAME = "pictureModel"
     }
 }

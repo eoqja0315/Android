@@ -9,7 +9,7 @@ interface PictureDao {
     fun getAllPictures() : List<Picture>
 
     @Query("SELECT * FROM picture WHERE id == :id")
-    fun getOnePictureById(id : Int) : Picture
+    fun getOnePictureById(id : Int) : Picture?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun savePictureById(picture : Picture)
