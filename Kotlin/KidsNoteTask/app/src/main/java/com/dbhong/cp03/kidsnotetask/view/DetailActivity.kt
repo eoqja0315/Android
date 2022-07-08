@@ -1,11 +1,13 @@
-package com.dbhong.cp03.kidsnotetask
+package com.dbhong.cp03.kidsnotetask.view
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
+import com.dbhong.cp03.kidsnotetask.AppDatabase
+import com.dbhong.cp03.kidsnotetask.R
 import com.dbhong.cp03.kidsnotetask.databinding.ActivityDetailBinding
+import com.dbhong.cp03.kidsnotetask.getAppDatabase
 import com.dbhong.cp03.kidsnotetask.model.Picture
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -74,7 +76,7 @@ class DetailActivity : AppCompatActivity() {
     private fun setLikeDataToDB(like : Boolean, listener : (Boolean) -> (Unit)) {
         GlobalScope.launch {
             picture.like = like
-            db.pictureDao().savePictureById(picture)
+            db.pictureDao().insertPicture(picture)
             listener(picture.like)
         }
     }

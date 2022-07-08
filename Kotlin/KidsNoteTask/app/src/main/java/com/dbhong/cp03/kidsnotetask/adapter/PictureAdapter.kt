@@ -16,11 +16,11 @@ import com.dbhong.cp03.kidsnotetask.model.Picture
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
 
     ListAdapter<Picture, PictureAdapter.PictureAdapterViewHolder>(diffUtil) {
+    private var pictures = emptyList<Picture>()
 
     inner class PictureAdapterViewHolder(private val binding: ItemPictureBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -65,7 +65,7 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
         private fun setLikeDataToDB(db : AppDatabase, picture: Picture, like : Boolean) {
             GlobalScope.launch {
                 picture.like = like
-                db.pictureDao().savePictureById(picture)
+                db.pictureDao().insertPicture(picture)
                 GlobalScope.launch(Dispatchers.Main) {
                     setImageButtonResource(like)
                 }
@@ -88,6 +88,15 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
         }
     }
 
+    internal fun setPictures(pictures : List<Picture>) {
+        this.pictures = pictures
+        notifyDataSetChanged()
+    }
+
+    override fun getItemCount(): Int {
+        return pictures.size
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PictureAdapterViewHolder {
         return PictureAdapterViewHolder(
             ItemPictureBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -95,7 +104,7 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
     }
 
     override fun onBindViewHolder(holder: PictureAdapterViewHolder, position: Int) {
-        holder.bind(currentList[position])
+        holder.bind(pictures[position])
     }
 
     companion object {

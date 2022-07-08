@@ -1,72 +1,53 @@
-package com.dbhong.cp03.kidsnotetask
+package com.dbhong.cp03.kidsnotetask.repository
 
-import android.animation.ValueAnimator
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.util.Log
-import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.dbhong.cp03.kidsnotetask.adapter.PictureAdapter
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.dbhong.cp03.kidsnotetask.AppDatabase
 import com.dbhong.cp03.kidsnotetask.api.PicsumService
-import com.dbhong.cp03.kidsnotetask.databinding.ActivityMainBinding
 import com.dbhong.cp03.kidsnotetask.model.Picture
+import com.dbhong.cp03.kidsnotetask.view.MainActivity
 import com.google.gson.JsonArray
+import kotlinx.coroutines.processNextEventInCurrentThread
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class MainActivity : AppCompatActivity() {
+class Repository(database : AppDatabase) {
 
-    private lateinit var binding: ActivityMainBinding
-    private lateinit var pictureAdapter: PictureAdapter
+    private val pictureDao = database.pictureDao()
+    val localAllPicture : LiveData<List<Picture>> = pictureDao.getAll()
+
     private lateinit var picsumService: PicsumService
+    val allPicture : MutableLiveData<List<Picture>> = MutableLiveData()
 
-    private lateinit var db : AppDatabase
-
-    private lateinit var pictures : MutableList<Picture>
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        db = getAppDatabase(this)
-
+    init {
         initPicsumService()
-        getPicturesFromApi()
-        initPictureRecyclerView()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        pictureAdapter.notifyDataSetChanged()
     }
 
     private fun initPicsumService() {
         val retrofit = Retrofit.Builder()
-            .baseUrl(GET_PICTURE_URL)
+            .baseUrl(MainActivity.GET_PICTURE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
         picsumService = retrofit.create(PicsumService::class.java)
     }
 
-    private fun initPictureRecyclerView() {
-        pictureAdapter = PictureAdapter (itemClickListener = {
-            val intent = Intent(this, DetailActivity::class.java)
-            intent.putExtra(PICTURE_MODEL_INTENT_NAME, it)
-            startActivity(intent)
-        })
-
-        binding.pictureRecyclerView.layoutManager = LinearLayoutManager(this)
-        binding.pictureRecyclerView.adapter = pictureAdapter
+    suspend fun getAll() : LiveData<List<Picture>>{
+        return pictureDao.getAll()
     }
 
-    private fun getPicturesFromApi() {
+    suspend fun insertPicture(picture: Picture) {
+        pictureDao.insertPicture(picture)
+    }
+
+    suspend fun getPicturesFromServer(){
+        val pictures = mutableListOf<Picture>()
+
         picsumService.getPictures()
             .enqueue(object : Callback<JsonArray> {
                 override fun onResponse(
@@ -74,7 +55,6 @@ class MainActivity : AppCompatActivity() {
                     response: Response<JsonArray>
                 ) {
                     val result = response.body()
-                    pictures = mutableListOf()
 
                     if (result != null) {
                         for (pictureResult in result) {
@@ -92,19 +72,26 @@ class MainActivity : AppCompatActivity() {
                             pictures.add(picture)
                         }
                     }
-                    pictureAdapter.submitList(pictures)
+
+                    allPicture.value = pictures
                 }
 
                 override fun onFailure(call: Call<JsonArray>, t: Throwable) {
                     t.printStackTrace()
-                    Toast.makeText(applicationContext, "Failed code : ${t.message}", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Failed code : ${t.message}")
                 }
             })
     }
 
     companion object {
-        const val TAG = "MainActivity"
-        const val GET_PICTURE_URL = "https://picsum.photos"
-        const val PICTURE_MODEL_INTENT_NAME = "pictureModel"
+        const val TAG = "Repository"
+        private var sInstance : Repository? = null
+        fun getInstance(database: AppDatabase) : Repository {
+            return sInstance ?: synchronized(this) {
+                val instance = Repository(database)
+                sInstance = instance
+                instance
+            }
+        }
     }
 }
