@@ -1,6 +1,7 @@
 package com.dbhong.cp03.kidsnotetask.dao
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.room.*
 import com.dbhong.cp03.kidsnotetask.model.Picture
 
@@ -10,7 +11,7 @@ interface PictureDao {
     fun getAll() : LiveData<List<Picture>>
 
     @Query("SELECT * FROM picture WHERE id == :id")
-    fun getOnePictureById(id : Int) : Picture?
+    fun getOnePictureById(id : Int) : LiveData<Picture>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertPicture(picture : Picture)

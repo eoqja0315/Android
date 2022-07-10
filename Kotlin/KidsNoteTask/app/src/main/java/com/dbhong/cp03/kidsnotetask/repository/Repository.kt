@@ -16,9 +16,9 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class Repository(database : AppDatabase) {
+open class Repository(database : AppDatabase) {
 
-    private val pictureDao = database.pictureDao()
+    protected val pictureDao = database.pictureDao()
     val localAllPicture : LiveData<List<Picture>> = pictureDao.getAll()
 
     private lateinit var picsumService: PicsumService
@@ -35,10 +35,6 @@ class Repository(database : AppDatabase) {
             .build()
 
         picsumService = retrofit.create(PicsumService::class.java)
-    }
-
-    suspend fun getAll() : LiveData<List<Picture>>{
-        return pictureDao.getAll()
     }
 
     suspend fun insertPicture(picture: Picture) {
@@ -58,16 +54,15 @@ class Repository(database : AppDatabase) {
 
                     if (result != null) {
                         for (pictureResult in result) {
-
                             val picture = Picture(
-                                id = pictureResult.asJsonObject.get("id").asInt,
-                                author = pictureResult.asJsonObject.get("author").asString,
-                                width = pictureResult.asJsonObject.get("width").asInt,
-                                height = pictureResult.asJsonObject.get("height").asInt,
-                                url = pictureResult.asJsonObject.get("url").asString,
-                                downloadUrl = pictureResult.asJsonObject.get("download_url").asString,
-                                false
-                            )
+                                    id = pictureResult.asJsonObject.get("id").asInt,
+                                    author = pictureResult.asJsonObject.get("author").asString,
+                                    width = pictureResult.asJsonObject.get("width").asInt,
+                                    height = pictureResult.asJsonObject.get("height").asInt,
+                                    url = pictureResult.asJsonObject.get("url").asString,
+                                    downloadUrl = pictureResult.asJsonObject.get("download_url").asString,
+                                    false
+                                )
 
                             pictures.add(picture)
                         }

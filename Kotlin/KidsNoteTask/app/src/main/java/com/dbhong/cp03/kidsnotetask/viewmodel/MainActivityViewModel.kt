@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
+import com.dbhong.cp03.kidsnotetask.adapter.PictureAdapter
 import com.dbhong.cp03.kidsnotetask.getAppDatabase
 import com.dbhong.cp03.kidsnotetask.model.Picture
 import com.dbhong.cp03.kidsnotetask.repository.Repository
@@ -32,25 +33,35 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     private fun updateLikeData() {
-        val localPictureList = localAllPicture.value
-        val allPicture = this.allPicture.value
-
-        if(localPictureList == null) {
-            return
-        }
-
-        if(allPicture == null) {
-            return
-        }
+        val localAllPicture = this.localAllPicture.value ?: return
+        val allPicture = this.allPicture.value ?: return
 
         for(i in allPicture.indices){
             val picture = allPicture[i]
 
-            for(j in localPictureList.indices) {
-                val localPicture = localPictureList[j]
+            for(j in localAllPicture.indices) {
+                val localPicture = allPicture[j]
 
                 if(picture.id == localPicture.id){
                     picture.like = localPicture.like
+                    break
+                }
+            }
+        }
+    }
+
+    fun updateLikeData(localAllPicture: List<Picture>) {
+        val allPicture = this.allPicture.value ?: return
+
+        for(i in allPicture.indices){
+            val picture = allPicture[i]
+
+            for(j in localAllPicture.indices) {
+                val localPicture = allPicture[j]
+
+                if(picture.id == localPicture.id){
+                    picture.like = localPicture.like
+                    break
                 }
             }
         }

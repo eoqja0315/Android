@@ -1,9 +1,11 @@
 package com.dbhong.cp03.kidsnotetask.adapter
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat.getDrawable
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -11,13 +13,15 @@ import com.bumptech.glide.Glide
 import com.dbhong.cp03.kidsnotetask.AppDatabase
 import com.dbhong.cp03.kidsnotetask.R
 import com.dbhong.cp03.kidsnotetask.databinding.ItemPictureBinding
-import com.dbhong.cp03.kidsnotetask.getAppDatabase
 import com.dbhong.cp03.kidsnotetask.model.Picture
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
+class PictureAdapter(
+    private val itemClickListener: (LiveData<Picture>) -> Unit,
+    private val likeImageButtonClickListener : (Picture) -> Unit,
+) :
 
     ListAdapter<Picture, PictureAdapter.PictureAdapterViewHolder>(diffUtil) {
     private var pictures = emptyList<Picture>()
@@ -26,8 +30,6 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(pictureModel: Picture) {
-            Log.e(TAG, "++ bind ++")
-
             binding.textViewAuthor.text = pictureModel.author
             binding.textViewImageSize.text = "${pictureModel.width} x ${pictureModel.height}"
 
@@ -35,49 +37,56 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
                 .load(pictureModel.downloadUrl)
                 .into(binding.imageView)
 
-            getLikeDataFromDB(getAppDatabase(binding.root.context), pictureModel){
-                GlobalScope.launch(Dispatchers.Main) {
-                    setImageButtonResource(it)
-                }
-            }
+//            getLikeDataFromDB(getAppDatabase(binding.root.context), pictureModel){
+//                GlobalScope.launch(Dispatchers.Main) {
+//                    setImageButtonResource(it)
+//                }
+//            }
 
             binding.root.setOnClickListener {
-                itemClickListener(pictureModel)
+                val livePicture = MutableLiveData<Picture>()
+                livePicture.value = pictureModel
+                itemClickListener(livePicture)
+                //itemClickListener(pictureModel)
             }
 
             binding.imageButtonLike.setOnClickListener {
                 if(pictureModel.like.not()) {
-                    like(getAppDatabase(binding.root.context), pictureModel)
+                    pictureModel.like = true
+                    likeImageButtonClickListener(pictureModel)
+                    //like(getAppDatabase(binding.root.context), pictureModel)
                 } else {
-                    dislike(getAppDatabase(binding.root.context), pictureModel)
+                    pictureModel.like = false
+                    likeImageButtonClickListener(pictureModel)
+                    //dislike(getAppDatabase(binding.root.context), pictureModel)
                 }
             }
         }
 
-        private fun like(db : AppDatabase, picture : Picture) {
-            setLikeDataToDB(db, picture, true)
-        }
+//        private fun like(db : AppDatabase, picture : Picture) {
+//            setLikeDataToDB(db, picture, true)
+//        }
+//
+//        private fun dislike(db : AppDatabase, picture : Picture) {
+//            setLikeDataToDB(db, picture, false)
+//        }
+//
+//        private fun setLikeDataToDB(db : AppDatabase, picture: Picture, like : Boolean) {
+//            GlobalScope.launch {
+//                picture.like = like
+//                db.pictureDao().insertPicture(picture)
+//                GlobalScope.launch(Dispatchers.Main) {
+//                    setImageButtonResource(like)
+//                }
+//            }
+//        }
 
-        private fun dislike(db : AppDatabase, picture : Picture) {
-            setLikeDataToDB(db, picture, false)
-        }
-
-        private fun setLikeDataToDB(db : AppDatabase, picture: Picture, like : Boolean) {
-            GlobalScope.launch {
-                picture.like = like
-                db.pictureDao().insertPicture(picture)
-                GlobalScope.launch(Dispatchers.Main) {
-                    setImageButtonResource(like)
-                }
-            }
-        }
-
-        private fun getLikeDataFromDB(db : AppDatabase, picture: Picture, listener : (Boolean) -> (Unit)) {
-            GlobalScope.launch {
-                picture.like = db.pictureDao().getOnePictureById(picture.id)?.like ?: return@launch
-                listener(picture.like)
-            }
-        }
+//        private fun getLikeDataFromDB(db : AppDatabase, picture: Picture, listener : (Boolean) -> (Unit)) {
+//            GlobalScope.launch {
+//                picture.like = db.pictureDao().getOnePictureById(picture.id)?.like ?: return@launch
+//                listener(picture.like)
+//            }
+//        }
 
         private fun setImageButtonResource(like : Boolean) {
             if(like) {
@@ -88,13 +97,13 @@ class PictureAdapter(private val itemClickListener: (Picture) -> Unit) :
         }
     }
 
-    internal fun setPictures(pictures : List<Picture>) {
+    internal fun setPictures(pictures: List<Picture>) {
         this.pictures = pictures
         notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
-        return pictures.size
+        return pictures.size ?: 0
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PictureAdapterViewHolder {
