@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Parcelable
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
@@ -34,8 +35,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.localAllPicture.observe(this, Observer {
             it?.let {
                 viewModel.updateLikeData(it)
-                //pictureAdapter.setPictures(viewModel.localAllPicture.value!!)
-                //pictureAdapter.setPictures(it)
             }
         })
 
@@ -48,6 +47,7 @@ class MainActivity : AppCompatActivity() {
     private fun initPictureRecyclerView() {
         pictureAdapter = PictureAdapter(
             itemClickListener = {
+                Log.i(TAG, "++ [I] : itemClickListener ++")
                 val intent = Intent(this, DetailActivity::class.java)
 
                 intent.putExtra(PICTURE_ID, it.value?.id)
@@ -58,9 +58,9 @@ class MainActivity : AppCompatActivity() {
                 intent.putExtra(PICTURE_DOWNLOAD_URL, it.value?.downloadUrl)
                 intent.putExtra(PICTURE_LIKE, it.value?.like)
 
-
                 startActivity(intent)
             }, likeImageButtonClickListener = {
+                Log.i(TAG, "++ [I] : likeImageButtonClickListener ++")
                 viewModel.insertPicture(picture = it)
             })
 

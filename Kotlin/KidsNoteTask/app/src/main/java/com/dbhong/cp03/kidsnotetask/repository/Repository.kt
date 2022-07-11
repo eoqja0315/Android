@@ -8,6 +8,7 @@ import com.dbhong.cp03.kidsnotetask.AppDatabase
 import com.dbhong.cp03.kidsnotetask.api.PicsumService
 import com.dbhong.cp03.kidsnotetask.model.Picture
 import com.dbhong.cp03.kidsnotetask.view.MainActivity
+import com.dbhong.cp03.kidsnotetask.viewmodel.MainActivityViewModel
 import com.google.gson.JsonArray
 import kotlinx.coroutines.processNextEventInCurrentThread
 import retrofit2.Call
@@ -38,6 +39,7 @@ open class Repository(database : AppDatabase) {
     }
 
     suspend fun insertPicture(picture: Picture) {
+        Log.i(TAG, "++ [I] : insertPicture ++")
         pictureDao.insertPicture(picture)
     }
 

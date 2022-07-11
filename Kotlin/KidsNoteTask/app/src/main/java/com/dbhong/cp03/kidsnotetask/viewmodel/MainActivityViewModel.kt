@@ -1,6 +1,7 @@
 package com.dbhong.cp03.kidsnotetask.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -9,6 +10,7 @@ import com.dbhong.cp03.kidsnotetask.adapter.PictureAdapter
 import com.dbhong.cp03.kidsnotetask.getAppDatabase
 import com.dbhong.cp03.kidsnotetask.model.Picture
 import com.dbhong.cp03.kidsnotetask.repository.Repository
+import com.dbhong.cp03.kidsnotetask.view.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -25,6 +27,7 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun insertPicture(picture: Picture) = viewModelScope.launch(Dispatchers.IO){
+        Log.i(TAG, "++ [I] : insertPicture ++")
         repository.insertPicture(picture)
     }
 
@@ -65,5 +68,9 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
                 }
             }
         }
+    }
+
+    companion object {
+        const val TAG = "MainActivityViewModel"
     }
 }

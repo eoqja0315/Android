@@ -108,9 +108,9 @@ class DetailActivity : AppCompatActivity() {
 
     private fun setImageButtonResource(like: Boolean) {
         if (like) {
-            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_flag_24))
+            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_cancel_24))
         } else {
-            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_outlined_flag_24))
+            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_check_circle_24))
         }
     }
 

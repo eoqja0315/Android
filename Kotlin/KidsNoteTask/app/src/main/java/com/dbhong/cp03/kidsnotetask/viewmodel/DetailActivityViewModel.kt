@@ -2,13 +2,10 @@ package com.dbhong.cp03.kidsnotetask.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.dbhong.cp03.kidsnotetask.getAppDatabase
 import com.dbhong.cp03.kidsnotetask.model.Picture
 import com.dbhong.cp03.kidsnotetask.repository.DetailRepository
-import com.dbhong.cp03.kidsnotetask.repository.Repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
