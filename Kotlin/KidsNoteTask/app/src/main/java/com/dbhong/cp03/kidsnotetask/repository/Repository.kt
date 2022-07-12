@@ -1,16 +1,13 @@
 package com.dbhong.cp03.kidsnotetask.repository
 
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.dbhong.cp03.kidsnotetask.AppDatabase
 import com.dbhong.cp03.kidsnotetask.api.PicsumService
-import com.dbhong.cp03.kidsnotetask.model.Picture
+import com.dbhong.cp03.kidsnotetask.model.PicsumPicture
 import com.dbhong.cp03.kidsnotetask.view.MainActivity
-import com.dbhong.cp03.kidsnotetask.viewmodel.MainActivityViewModel
 import com.google.gson.JsonArray
-import kotlinx.coroutines.processNextEventInCurrentThread
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -20,10 +17,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 open class Repository(database : AppDatabase) {
 
     protected val pictureDao = database.pictureDao()
-    val localAllPicture : LiveData<List<Picture>> = pictureDao.getAll()
+    val localAllPicsumPicture : LiveData<List<PicsumPicture>> = pictureDao.getAll()
 
     private lateinit var picsumService: PicsumService
-    val allPicture : MutableLiveData<List<Picture>> = MutableLiveData()
+    val allPicsumPicture : MutableLiveData<List<PicsumPicture>> = MutableLiveData()
 
     init {
         initPicsumService()
@@ -38,13 +35,13 @@ open class Repository(database : AppDatabase) {
         picsumService = retrofit.create(PicsumService::class.java)
     }
 
-    suspend fun insertPicture(picture: Picture) {
+    suspend fun insertPicture(picsumPicture: PicsumPicture) {
         Log.i(TAG, "++ [I] : insertPicture ++")
-        pictureDao.insertPicture(picture)
+        pictureDao.insertPicture(picsumPicture)
     }
 
-    suspend fun getPicturesFromServer(){
-        val pictures = mutableListOf<Picture>()
+    suspend fun getPicsumPicturesFromServer(){
+        val picsumPictures = mutableListOf<PicsumPicture>()
 
         picsumService.getPictures()
             .enqueue(object : Callback<JsonArray> {
@@ -56,7 +53,7 @@ open class Repository(database : AppDatabase) {
 
                     if (result != null) {
                         for (pictureResult in result) {
-                            val picture = Picture(
+                            val picsumPicture = PicsumPicture(
                                     id = pictureResult.asJsonObject.get("id").asInt,
                                     author = pictureResult.asJsonObject.get("author").asString,
                                     width = pictureResult.asJsonObject.get("width").asInt,
@@ -66,11 +63,11 @@ open class Repository(database : AppDatabase) {
                                     false
                                 )
 
-                            pictures.add(picture)
+                            picsumPictures.add(picsumPicture)
                         }
                     }
 
-                    allPicture.value = pictures
+                    allPicsumPicture.value = picsumPictures
                 }
 
                 override fun onFailure(call: Call<JsonArray>, t: Throwable) {

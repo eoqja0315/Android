@@ -1,18 +1,21 @@
 package com.dbhong.cp03.kidsnotetask.view
 
 import android.content.Intent
+import android.net.Network
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dbhong.cp03.kidsnotetask.R
+import com.dbhong.cp03.kidsnotetask.`interface`.NetworkResult
 import com.dbhong.cp03.kidsnotetask.adapter.PictureAdapter
 import com.dbhong.cp03.kidsnotetask.databinding.ActivityMainBinding
 import com.dbhong.cp03.kidsnotetask.viewmodel.MainActivityViewModel
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,34 +23,37 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pictureAdapter: PictureAdapter
     private val viewModel: MainActivityViewModel by viewModels()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        val dataBinding =
-            DataBindingUtil.setContentView<ActivityMainBinding>(this, R.layout.activity_main)
+        setContentView(binding.root)
+
+        initPictureRecyclerView()
+        MainScope().launch {
+            viewModel.getResultOfPicsumPicturesFromServer().collect {
+                if(it == "SUCCESS"){
+                    //pictureAdapter.setPictures(viewModel.allPicture.value ?: emptyList())
+                }
+            }
+        }
+
+//        viewModel.localAllPicture.observe(this, Observer {
+//            it?.let {
+//                pictureAdapter.setPictures(viewModel.updateLike(it))
+//            }
+//        })
 
         viewModel.allPicture.observe(this, Observer {
             it?.let {
                 pictureAdapter.setPictures(it)
             }
         })
-
-        viewModel.localAllPicture.observe(this, Observer {
-            it?.let {
-                viewModel.updateLikeData(it)
-            }
-        })
-
-        setContentView(binding.root)
-
-        viewModel.getPicutresFromServer()
-        initPictureRecyclerView()
     }
 
     private fun initPictureRecyclerView() {
         pictureAdapter = PictureAdapter(
             itemClickListener = {
-                Log.i(TAG, "++ [I] : itemClickListener ++")
                 val intent = Intent(this, DetailActivity::class.java)
 
                 intent.putExtra(PICTURE_ID, it.value?.id)
@@ -60,8 +66,7 @@ class MainActivity : AppCompatActivity() {
 
                 startActivity(intent)
             }, likeImageButtonClickListener = {
-                Log.i(TAG, "++ [I] : likeImageButtonClickListener ++")
-                viewModel.insertPicture(picture = it)
+                viewModel.insertPicsumPicture(picsumPicture = it)
             })
 
         binding.pictureRecyclerView.layoutManager = LinearLayoutManager(this)

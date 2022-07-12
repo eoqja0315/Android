@@ -6,57 +6,51 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat.getDrawable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.dbhong.cp03.kidsnotetask.AppDatabase
 import com.dbhong.cp03.kidsnotetask.R
 import com.dbhong.cp03.kidsnotetask.databinding.ItemPictureBinding
-import com.dbhong.cp03.kidsnotetask.model.Picture
-import com.dbhong.cp03.kidsnotetask.viewmodel.MainActivityViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.dbhong.cp03.kidsnotetask.model.PicsumPicture
+import com.dbhong.cp03.kidsnotetask.view.MainActivity
 
 class PictureAdapter(
-    private val itemClickListener: (LiveData<Picture>) -> Unit,
-    private val likeImageButtonClickListener : (Picture) -> Unit,
+    private val itemClickListener: (LiveData<PicsumPicture>) -> Unit,
+    private val likeImageButtonClickListener : (PicsumPicture) -> Unit,
 ) :
 
-    ListAdapter<Picture, PictureAdapter.PictureAdapterViewHolder>(diffUtil) {
-    private var pictures = emptyList<Picture>()
+    ListAdapter<PicsumPicture, PictureAdapter.PictureAdapterViewHolder>(diffUtil) {
+    private var picsumPictures = emptyList<PicsumPicture>()
 
     inner class PictureAdapterViewHolder(private val binding: ItemPictureBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(pictureModel: Picture) {
+        fun bind(picsumPictureModel: PicsumPicture) {
             Log.i(TAG, "++ [I] : bind ++")
-            binding.textViewAuthor.text = pictureModel.author
-            binding.textViewImageSize.text = "${pictureModel.width} x ${pictureModel.height}"
+            binding.textViewAuthor.text = picsumPictureModel.author
+            binding.textViewImageSize.text = "${picsumPictureModel.width} x ${picsumPictureModel.height}"
 
-            setImageButtonResource(pictureModel.like)
+            setImageButtonResource(picsumPictureModel.like)
 
             Glide.with(binding.imageView.context)
-                .load(pictureModel.downloadUrl)
+                .load(picsumPictureModel.downloadUrl)
                 .into(binding.imageView)
 
             binding.root.setOnClickListener {
-                val livePicture = MutableLiveData<Picture>()
-                livePicture.value = pictureModel
-                itemClickListener(livePicture)
-                //itemClickListener(pictureModel)
+                Log.i(TAG, "++ [I] : setOnClickListener ++")
+                val livePicsumPicture = MutableLiveData<PicsumPicture>()
+                livePicsumPicture.value = picsumPictureModel
+                itemClickListener(livePicsumPicture)
             }
 
-
             binding.imageButtonLike.setOnClickListener {
-                if(pictureModel.like.not()) {
-                    pictureModel.like = true
-                    likeImageButtonClickListener(pictureModel)
+                if(picsumPictureModel.like.not()) {
+                    picsumPictureModel.like = true
+                    likeImageButtonClickListener(picsumPictureModel)
                 } else {
-                    pictureModel.like = false
-                    likeImageButtonClickListener(pictureModel)
+                    picsumPictureModel.like = false
+                    likeImageButtonClickListener(picsumPictureModel)
                 }
             }
         }
@@ -64,21 +58,21 @@ class PictureAdapter(
         private fun setImageButtonResource(like : Boolean) {
             Log.i(TAG, "++ [I] : setImageButtonResource : $like ++")
             if(like) {
-                binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_cancel_24))
-            } else {
                 binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_check_circle_24))
+            } else {
+                binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_cancel_24))
             }
         }
     }
 
-    internal fun setPictures(pictures: List<Picture>) {
+    internal fun setPictures(picsumPictures: List<PicsumPicture>) {
         Log.i(TAG, "++ [I] : setPicture ++")
-        this.pictures = pictures
+        this.picsumPictures = picsumPictures
         notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
-        return pictures.size ?: 0
+        return picsumPictures.size ?: 0
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PictureAdapterViewHolder {
@@ -89,17 +83,17 @@ class PictureAdapter(
 
     override fun onBindViewHolder(holder: PictureAdapterViewHolder, position: Int) {
 
-        holder.bind(pictures[position])
+        holder.bind(picsumPictures[position])
     }
 
     companion object {
         const val TAG = "PictureAdapter"
-        val diffUtil = object : DiffUtil.ItemCallback<Picture>() {
-            override fun areItemsTheSame(oldItem: Picture, newItem: Picture): Boolean {
+        val diffUtil = object : DiffUtil.ItemCallback<PicsumPicture>() {
+            override fun areItemsTheSame(oldItem: PicsumPicture, newItem: PicsumPicture): Boolean {
                 return oldItem == newItem
             }
 
-            override fun areContentsTheSame(oldItem: Picture, newItem: Picture): Boolean {
+            override fun areContentsTheSame(oldItem: PicsumPicture, newItem: PicsumPicture): Boolean {
                 return oldItem.id == newItem.id
             }
         }

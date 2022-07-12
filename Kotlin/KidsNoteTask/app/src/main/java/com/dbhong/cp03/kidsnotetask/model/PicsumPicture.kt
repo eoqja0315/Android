@@ -9,7 +9,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @Entity
-data class Picture (
+data class PicsumPicture (
     @SerializedName("id") @PrimaryKey val id : Int,
     @SerializedName("author") val author : String,
     @SerializedName("width") val width : Int,

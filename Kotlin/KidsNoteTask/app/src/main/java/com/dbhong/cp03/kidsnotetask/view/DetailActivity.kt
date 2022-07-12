@@ -1,8 +1,6 @@
 package com.dbhong.cp03.kidsnotetask.view
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
@@ -12,29 +10,59 @@ import com.dbhong.cp03.kidsnotetask.AppDatabase
 import com.dbhong.cp03.kidsnotetask.R
 import com.dbhong.cp03.kidsnotetask.databinding.ActivityDetailBinding
 import com.dbhong.cp03.kidsnotetask.getAppDatabase
-import com.dbhong.cp03.kidsnotetask.model.Picture
+import com.dbhong.cp03.kidsnotetask.model.PicsumPicture
 import com.dbhong.cp03.kidsnotetask.viewmodel.DetailActivityViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class DetailActivity : AppCompatActivity() {
 
-    private lateinit var db: AppDatabase
     private lateinit var binding: ActivityDetailBinding
-    private lateinit var picture: MutableLiveData<Picture>
-
+    private var picsumPicture: MutableLiveData<PicsumPicture> = MutableLiveData()
     private val viewModel: DetailActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        db = getAppDatabase(this)
 
-        //val pictureModel = intent.getParcelableExtra<Picture>(PICTURE_MODEL_INTENT_NAME)
+        getData()
+        initViews()
+        bindingViews()
 
-        val pictureModel = Picture(
+        viewModel.setId(picsumPicture.value?.id ?: -1)
+        viewModel.detailPicture.observe(this, Observer {
+            it?.let {
+                setImageButtonResource(it.like)
+            }
+        })
+    }
+
+    private fun initViews() {
+        binding.textViewAuthor.text = picsumPicture.value?.author
+        binding.textViewImageSize.text = "${picsumPicture.value?.width} x ${picsumPicture.value?.height}"
+
+        Glide.with(binding.imageView.context)
+            .load(picsumPicture.value?.downloadUrl)
+            .into(binding.imageView)
+
+        setImageButtonResource(picsumPicture.value?.like ?: false)
+    }
+
+    private fun bindingViews() {
+        binding.imageButtonLike.setOnClickListener {
+            if(picsumPicture.value != null) {
+                if (picsumPicture.value?.like == false) {
+                    picsumPicture.value?.like = true
+                    viewModel.insertPicture(picsumPicture.value!!)
+                } else {
+                    picsumPicture.value?.like = false
+                    viewModel.insertPicture(picsumPicture.value!!)
+                }
+            }
+        }
+    }
+
+    private fun getData() {
+        val picsumPictureModel = PicsumPicture(
             id = intent.getIntExtra(PICTURE_ID, -1),
             author = intent.getStringExtra(PICTURE_AUTHOR) ?: "",
             width = intent.getIntExtra(PICTURE_WIDTH, -1),
@@ -44,73 +72,14 @@ class DetailActivity : AppCompatActivity() {
             like = intent.getBooleanExtra(PICTURE_LIKE, false)
         )
 
-        viewModel.detailPicture.observe(this, Observer {
-            it?.let {
-                setImageButtonResource(it.like)
-            }
-        })
-
-        picture.value = pictureModel
-        initViews()
-        bindingViews()
+        picsumPicture.value = picsumPictureModel
     }
-
-    private fun initViews() {
-        binding.textViewAuthor.text = picture.value?.author
-        binding.textViewImageSize.text = "${picture.value?.width} x ${picture.value?.height}"
-
-        Glide.with(binding.imageView.context)
-            .load(picture.value?.downloadUrl)
-            .into(binding.imageView)
-
-        setImageButtonResource(picture.value?.like ?: false)
-    }
-
-    private fun bindingViews() {
-        binding.imageButtonLike.setOnClickListener {
-            if(picture.value != null) {
-                if (picture.value?.like == false) {
-                    picture.value?.like = true
-                    viewModel.insertPicture(picture.value!!)
-                    //like()
-                } else {
-                    picture.value?.like = false
-                    viewModel.insertPicture(picture.value!!)
-                    //dislike()
-                }
-            }
-        }
-    }
-
-//    private fun like() {
-//        setLikeDataToDB(true){
-//            GlobalScope.launch(Dispatchers.Main) {
-//                setImageButtonResource(it)
-//            }
-//        }
-//    }
-//
-//    private fun dislike() {
-//        setLikeDataToDB(false){
-//            GlobalScope.launch(Dispatchers.Main) {
-//                setImageButtonResource(it)
-//            }
-//        }
-//    }
-//
-//    private fun setLikeDataToDB(like : Boolean, listener : (Boolean?) -> (Unit)) {
-//        GlobalScope.launch {
-//            picture.value?.like = like
-//            db.pictureDao().insertPicture(picture)
-//            listener(picture.value?.like)
-//        }
-//    }
 
     private fun setImageButtonResource(like: Boolean) {
         if (like) {
-            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_cancel_24))
-        } else {
             binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_check_circle_24))
+        } else {
+            binding.imageButtonLike.setImageDrawable(getDrawable(R.drawable.ic_baseline_cancel_24))
         }
     }
 
