@@ -56,7 +56,6 @@ class PictureAdapter(
         }
 
         private fun setImageButtonResource(like : Boolean) {
-            Log.i(TAG, "++ [I] : setImageButtonResource : $like ++")
             if(like) {
                 binding.imageButtonLike.setImageDrawable(getDrawable(binding.root.context, R.drawable.ic_baseline_check_circle_24))
             } else {

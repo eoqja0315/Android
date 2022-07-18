@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.dbhong.cp03.kidsnotetask.AppDatabase
+import com.dbhong.cp03.kidsnotetask.`interface`.NetworkCallback
 import com.dbhong.cp03.kidsnotetask.api.PicsumService
 import com.dbhong.cp03.kidsnotetask.model.PicsumPicture
 import com.dbhong.cp03.kidsnotetask.view.MainActivity
@@ -40,7 +41,7 @@ open class Repository(database : AppDatabase) {
         pictureDao.insertPicture(picsumPicture)
     }
 
-    suspend fun getPicsumPicturesFromServer(){
+    suspend fun getPicsumPicturesFromServer(networkCallback : NetworkCallback){
         val picsumPictures = mutableListOf<PicsumPicture>()
 
         picsumService.getPictures()
@@ -68,6 +69,7 @@ open class Repository(database : AppDatabase) {
                     }
 
                     allPicsumPicture.value = picsumPictures
+                    networkCallback.success(NetworkCallback.SUCCESS)
                 }
 
                 override fun onFailure(call: Call<JsonArray>, t: Throwable) {

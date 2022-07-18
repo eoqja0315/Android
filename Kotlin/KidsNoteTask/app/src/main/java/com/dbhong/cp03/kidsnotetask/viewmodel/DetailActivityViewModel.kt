@@ -13,7 +13,7 @@ class DetailActivityViewModel(application: Application) : AndroidViewModel(appli
 
     private var id : Int = -1
     private val database = getAppDatabase(application.applicationContext)
-    private val repository = DetailRepository(database, id)
+    private var repository = DetailRepository(database, id)
 
     var detailPicture = repository.detailPicsumPicture
 
@@ -23,9 +23,28 @@ class DetailActivityViewModel(application: Application) : AndroidViewModel(appli
 
     fun setId(id : Int) {
         this.id = id
+        setPicture()
     }
 
     fun getId() : Int {
         return id
+    }
+
+    fun updateLike(picture : PicsumPicture) {
+        val pictures = repository.allPicsumPicture.value
+
+        if(pictures != null) {
+            for(i in pictures.indices){
+                if(pictures[i].id == picture.id){
+                    pictures[i].like = picture.like
+                    break
+                }
+            }
+        }
+    }
+
+    private fun setPicture() {
+        repository = DetailRepository(database, this.id)
+        detailPicture = repository.detailPicsumPicture
     }
 }

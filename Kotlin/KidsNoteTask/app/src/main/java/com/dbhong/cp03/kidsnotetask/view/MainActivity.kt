@@ -1,16 +1,12 @@
 package com.dbhong.cp03.kidsnotetask.view
 
 import android.content.Intent
-import android.net.Network
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.dbhong.cp03.kidsnotetask.R
-import com.dbhong.cp03.kidsnotetask.`interface`.NetworkResult
 import com.dbhong.cp03.kidsnotetask.adapter.PictureAdapter
 import com.dbhong.cp03.kidsnotetask.databinding.ActivityMainBinding
 import com.dbhong.cp03.kidsnotetask.viewmodel.MainActivityViewModel
@@ -33,22 +29,28 @@ class MainActivity : AppCompatActivity() {
         MainScope().launch {
             viewModel.getResultOfPicsumPicturesFromServer().collect {
                 if(it == "SUCCESS"){
-                    //pictureAdapter.setPictures(viewModel.allPicture.value ?: emptyList())
+
                 }
             }
         }
 
-//        viewModel.localAllPicture.observe(this, Observer {
-//            it?.let {
-//                pictureAdapter.setPictures(viewModel.updateLike(it))
-//            }
-//        })
+        viewModel.localAllPicture.observe(this, Observer {
+            it?.let {
+                pictureAdapter.setPictures(viewModel.updateLike(it))
+            }
+        })
 
         viewModel.allPicture.observe(this, Observer {
             it?.let {
                 pictureAdapter.setPictures(it)
             }
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.updateLike()
+        pictureAdapter.setPictures(viewModel.getAll())
     }
 
     private fun initPictureRecyclerView() {
