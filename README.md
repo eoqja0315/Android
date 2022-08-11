@@ -1,2 +1,2 @@
-# AndroidBasic
+# Android
 Practice of android programming
